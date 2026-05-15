@@ -2,10 +2,10 @@ import { useRef, useState, useEffect } from "react";
 import { CRD, SRF, BD, BD2, BLU, GRN, TX1, TX2, F } from "../../constants/theme";
 import buildSystemPrompt from "./buildSystemPrompt";
 
-// ─── PASTE YOUR GROQ API KEY HERE ───────────────────────────────────────────
+// ─── PASTE YOUR GROQ API KEY HERE ─────────────
 // const GROQ_API_KEY = "YOUR_GROQ_API_KEY_HERE";
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-// ─────────────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────
 
 export default function ChatPanel({ user, students, teachers, assignments, onClose }) {
   const [messages, setMessages] = useState([
