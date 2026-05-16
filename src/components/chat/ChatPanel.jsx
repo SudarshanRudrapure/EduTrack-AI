@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+// eslint-disable-next-line no-unused-vars
 import { BLU, F } from "../../constants/theme";
 import buildSystemPrompt from "./buildSystemPrompt";
 
@@ -67,6 +68,7 @@ export default function ChatPanel({ user, students, teachers, assignments, onClo
   };
 
   const roleIcon = user.role === "admin" ? "🛡️" : user.role === "teacher" ? "👨‍🏫" : "🎓";
+  // eslint-disable-next-line no-unused-vars
   const userName = user.name || user.data?.name || "User";
 
   return (

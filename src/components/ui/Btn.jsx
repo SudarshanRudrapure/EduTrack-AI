@@ -1,6 +1,12 @@
-import { F } from "../../constants/theme";
+// eslint-disable-next-line no-unused-vars
+import { F, BLU } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
+
+
 
 export default function Btn({ children, v = "primary", sz = "md", onClick, style = {}, disabled }) {
+  // eslint-disable-next-line no-unused-vars
+  const { theme } = useTheme();
   const vs = {
     primary: { background: "#4f84f6", color: "#fff", border: "1px solid #1e4ecf" },
     ghost:   { background: "transparent", color: "#7a94b8", border: "1px solid #1e3558" },

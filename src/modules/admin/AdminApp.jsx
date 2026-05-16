@@ -6,9 +6,10 @@ import AdminStudents from "./AdminStudents";
 import AdminTeachers from "./AdminTeachers";
 import AdminReports from "./AdminReports";
 import AdminSettings from "./AdminSettings";
+import AdminCalendar from "./AdminCalendar";
 
 // eslint-disable-next-line no-unused-vars
-export default function AdminApp({ user, students, teachers, assignments, setStudents, setTeachers, setAssignments, onLogout }) {
+export default function AdminApp({ user, students, teachers, assignments, setStudents, setTeachers, setAssignments, onLogout,resetData  }) {
   const [view, setView] = useState("overview");
 
   const navItems = [
@@ -16,6 +17,7 @@ export default function AdminApp({ user, students, teachers, assignments, setStu
     { id: "students",  icon: "🎓", label: "Students"  },
     { id: "teachers",  icon: "👨‍🏫", label: "Teachers"  },
     { id: "reports",   icon: "📈", label: "Reports"   },
+    { id: "calendar",  icon: "📅", label: "Calendar"  },
     { id: "settings",  icon: "⚙️", label: "Settings"  },
   ];
 
@@ -27,7 +29,8 @@ export default function AdminApp({ user, students, teachers, assignments, setStu
         {view === "students" && <AdminStudents students={students} teachers={teachers} setStudents={setStudents} />}
         {view === "teachers" && <AdminTeachers teachers={teachers} setTeachers={setTeachers} students={students} />}
         {view === "reports"  && <AdminReports  students={students} assignments={assignments} />}
-        {view === "settings" && <AdminSettings />}
+        {view === "settings" && <AdminSettings resetData={resetData} />}
+        {view === "calendar"  && <AdminCalendar />}
       </PageWrap>
     </>
   );
