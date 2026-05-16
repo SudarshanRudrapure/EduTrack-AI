@@ -13,13 +13,11 @@ const load = (key, fallback) => {
   try {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : fallback;
-  } catch {
-    return fallback;
-  }
+  } catch { return fallback; }
 };
 
 export default function App() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
 
   const [students,    setStudentsRaw]    = useState(() => load("ams_students",    INIT_STUDENTS));
   const [teachers,    setTeachersRaw]    = useState(() => load("ams_teachers",    INIT_TEACHERS));
@@ -34,9 +32,8 @@ export default function App() {
   const setStudents    = useCallback((v) => setStudentsRaw(v),    []);
   const setTeachers    = useCallback((v) => setTeachersRaw(v),    []);
   const setAssignments = useCallback((v) => setAssignmentsRaw(v), []);
-
-  const login  = useCallback((userData) => setUser(userData), []);
-  const logout = useCallback(() => { setUser(null); setChatOpen(false); }, []);
+  const login          = useCallback((u) => setUser(u), []);
+  const logout         = useCallback(() => { setUser(null); setChatOpen(false); }, []);
 
   const resetData = useCallback(() => {
     if (confirm("Reset all data to original? This cannot be undone.")) {
@@ -50,75 +47,84 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ fontFamily: F, background: theme.BG, minHeight: "100vh", color: theme.TX1, transition: "background 0.3s, color 0.3s" }}>
+    <div style={{ fontFamily: F, background: theme.BG, minHeight: "100vh", color: theme.TX1 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: ${theme.SRF}; }
-        ::-webkit-scrollbar-thumb { background: ${theme.BD2}; border-radius: 2px; }
+
+        body {
+          background: ${theme.BG} !important;
+          color: ${theme.TX1} !important;
+        }
+
+        /* smooth theme transitions */
+        *, *::before, *::after {
+          transition:
+            background-color 0.25s ease,
+            border-color     0.25s ease,
+            color            0.15s ease,
+            box-shadow       0.25s ease !important;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar       { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: ${theme.BG}; }
+        ::-webkit-scrollbar-thumb { background: ${theme.BD2}; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: ${theme.TX3}; }
+
+        /* inputs, selects */
         input, select, textarea, button { font-family: ${F}; }
         input[type=range] { accent-color: ${BLU}; }
-        * { transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
+
+        /* placeholder color */
+        ::placeholder { color: ${theme.TX3}; opacity: 1; }
+
+        /* select option background fix for light mode */
+        select option {
+          background: ${theme.SRF};
+          color: ${theme.TX1};
+        }
+
+        /* table row hover */
+        tr:hover td { background: ${theme.BD}22 !important; }
+
+        /* focus ring */
+        input:focus, select:focus, textarea:focus {
+          border-color: ${BLU} !important;
+          box-shadow: 0 0 0 3px ${BLU}22 !important;
+        }
+
+        /* light mode card shadow */
+        ${!isDark ? `
+          .card-shadow {
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+          }
+        ` : ""}
       `}</style>
 
       {!user && (
-        <LoginPage
-          onLogin={login}
-          students={students}
-          teachers={teachers}
-          setStudents={setStudents}
-        />
+        <LoginPage onLogin={login} students={students} teachers={teachers} setStudents={setStudents} />
       )}
-
       {user?.role === "admin" && (
-        <AdminApp
-          user={user}
-          students={students}
-          teachers={teachers}
-          assignments={assignments}
-          setStudents={setStudents}
-          setTeachers={setTeachers}
-          setAssignments={setAssignments}
-          onLogout={logout}
-          resetData={resetData}
-        />
+        <AdminApp user={user} students={students} teachers={teachers} assignments={assignments}
+          setStudents={setStudents} setTeachers={setTeachers} setAssignments={setAssignments}
+          onLogout={logout} resetData={resetData} />
       )}
-
       {user?.role === "teacher" && (
-        <TeacherApp
-          user={user}
-          students={students}
-          teachers={teachers}
-          assignments={assignments}
-          setStudents={setStudents}
-          setAssignments={setAssignments}
-          onLogout={logout}
-        />
+        <TeacherApp user={user} students={students} teachers={teachers} assignments={assignments}
+          setStudents={setStudents} setAssignments={setAssignments} onLogout={logout} />
       )}
-
       {user?.role === "student" && (
-        <StudentApp
-          user={user}
-          students={students}
-          assignments={assignments}
-          setStudents={setStudents}
-          setAssignments={setAssignments}
-          onLogout={logout}
-        />
+        <StudentApp user={user} students={students} assignments={assignments}
+          setStudents={setStudents} setAssignments={setAssignments} onLogout={logout} />
       )}
-
       {user && (
         <>
           <ChatButton open={chatOpen} onClick={() => setChatOpen(o => !o)} />
           {chatOpen && (
-            <ChatPanel
-              user={user}
-              students={students}
-              teachers={teachers}
-              assignments={assignments}
-              onClose={() => setChatOpen(false)}
-            />
+            <ChatPanel user={user} students={students} teachers={teachers}
+              assignments={assignments} onClose={() => setChatOpen(false)} />
           )}
         </>
       )}

@@ -1,8 +1,22 @@
-import { TX2, BD, F } from "../../constants/theme";
+import { F } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
-export default function Badge({ children, color = TX2, bg = BD }) {
+export default function Badge({ children, color, bg }) {
+  const { theme } = useTheme();
+  const c = color || theme.TX2;
+  const b = bg    || theme.BD;
   return (
-    <span style={{ background: bg, color, border: `1px solid ${color}33`, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600, fontFamily: F, whiteSpace: "nowrap" }}>
+    <span style={{
+      background: b,
+      color: c,
+      border: `1px solid ${c}44`,
+      borderRadius: 20,
+      padding: "2px 10px",
+      fontSize: 11,
+      fontWeight: 600,
+      fontFamily: F,
+      whiteSpace: "nowrap",
+    }}>
       {children}
     </span>
   );

@@ -10,7 +10,7 @@ import TeacherReports     from "./TeacherReports";
 
 export default function TeacherApp({ user, students, assignments, setStudents, setAssignments, onLogout }) {
   const [view, setView] = useState("overview");
-  const myStudents  = students.filter(s => s.teacherId === user.data.id);
+  const myStudents   = students.filter(s => s.teacherId === user.data.id);
   const pendingCount = myStudents.filter(s => s.status === "pending").length;
 
   const navItems = [

@@ -1,6 +1,7 @@
 import { useState } from "react";
 // eslint-disable-next-line no-unused-vars
-import { CRD, BD, BLU, GRN, AMB, RED, TX1, TX2, F } from "../../constants/theme";
+import { BLU, GRN, AMB, RED, F, FM } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { BRANCHES, BCOL } from "../../constants/branches";
 import { avgAtt } from "../../utils/helpers";
 import PageHeader from "../../components/layout/PageHeader";
@@ -13,10 +14,11 @@ import AttBar from "../../components/ui/AttBar";
 import Modal from "../../components/ui/Modal";
 
 export default function TeacherStudents({ students }) {
-  const [search, setSearch] = useState("");
+  const { theme, isDark } = useTheme();
+  const [search,  setSearch]  = useState("");
   const [branchF, setBranchF] = useState("All");
-  const [semF, setSemF]       = useState("All");
-  const [sel, setSel]         = useState(null);
+  const [semF,    setSemF]    = useState("All");
+  const [sel,     setSel]     = useState(null);
 
   const sems     = ["All", ...Array.from(new Set(students.map(s => s.semester))).sort()];
   const filtered = students.filter(s =>
@@ -27,32 +29,49 @@ export default function TeacherStudents({ students }) {
 
   return (
     <>
-      <PageHeader title="My Students" sub={`${students.filter(s => s.status === "approved").length} approved students`} />
+      <PageHeader
+        title="My Students"
+        sub={`${students.filter(s => s.status === "approved").length} approved students`}
+      />
+
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name, USN, branch..." />
+        <SearchBar value={search} onChange={setSearch} placeholder="Search by name, USN..." />
         <Select value={branchF} onChange={setBranchF} options={["All", ...BRANCHES]} />
         <Select value={semF}    onChange={setSemF}    options={sems.map(s => ({ value: s, label: s === "All" ? "All Semesters" : `Sem ${s}` }))} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
         {filtered.map(s => (
-          <div key={s.id} onClick={() => setSel(s)} style={{ background: CRD, border: `1px solid ${sel?.id === s.id ? BLU : BD}`, borderRadius: 12, padding: 16, cursor: "pointer", transition: "border-color 0.15s" }}>
+          <div key={s.id} onClick={() => setSel(s)} style={{
+            background: theme.CRD,
+            border: `1px solid ${sel?.id === s.id ? BLU : theme.BD}`,
+            borderRadius: 12,
+            padding: 16,
+            cursor: "pointer",
+            boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+          }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
               <Avatar name={s.name} size={38} />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: TX1, fontFamily: F }}>{s.name}</div>
-                <div style={{ fontSize: 11, color: TX2, fontFamily: "'JetBrains Mono', monospace" }}>{s.usn}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: theme.TX1, fontFamily: F, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                <div style={{ fontSize: 11, color: theme.TX2, fontFamily: FM }}>{s.usn}</div>
               </div>
               <StatusBadge status={s.status} />
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
               <Badge color={BCOL[s.branch]} bg={BCOL[s.branch] + "18"}>{s.branch}</Badge>
-              <Badge color={TX2} bg={BD}>Sem {s.semester}</Badge>
+              <Badge color={theme.TX2} bg={theme.BD}>Sem {s.semester}</Badge>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-              <span style={{ color: TX2, fontFamily: F }}>CGPA: <b style={{ color: GRN, fontFamily: "'JetBrains Mono', monospace" }}>{s.cgpa || "—"}</b></span>
-              <span style={{ color: avgAtt(s) < 75 ? RED : TX2, fontFamily: F }}>Att: <b style={{ fontFamily: "'JetBrains Mono', monospace" }}>{avgAtt(s) || "—"}%</b></span>
-              {s.backlogs > 0 && <Badge color={RED} bg="#450a0a">{s.backlogs} KT</Badge>}
+              <span style={{ color: theme.TX2, fontFamily: F }}>
+                CGPA: <b style={{ color: GRN, fontFamily: FM }}>{s.cgpa || "—"}</b>
+              </span>
+              <span style={{ color: avgAtt(s) < 75 ? RED : theme.TX2, fontFamily: F }}>
+                Att: <b style={{ fontFamily: FM }}>{avgAtt(s) || "—"}%</b>
+              </span>
+              {s.backlogs > 0 && (
+                <Badge color={RED} bg={isDark ? "#450a0a" : "#fee2e2"}>{s.backlogs} KT</Badge>
+              )}
             </div>
           </div>
         ))}
@@ -60,18 +79,27 @@ export default function TeacherStudents({ students }) {
 
       {sel && (
         <Modal title={`${sel.name} — Detailed Profile`} onClose={() => setSel(null)}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-            {[["USN", sel.usn || "—"], ["Branch", sel.branch], ["Semester", sel.semester], ["CGPA", sel.cgpa], ["SGPA", sel.sgpa], ["Backlogs", sel.backlogs], ["Section", sel.section || "—"], ["Specialization", sel.specialization || "—"]].map(([k, v]) => (
-              <div key={k} style={{ background: "#071020", borderRadius: 8, padding: "10px 12px" }}>
-                <div style={{ fontSize: 10, color: "#3d5278", textTransform: "uppercase", letterSpacing: 1, marginBottom: 3 }}>{k}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: TX1, fontFamily: "'JetBrains Mono', monospace" }}>{v}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+            {[
+              ["USN", sel.usn || "—"], ["Branch", sel.branch],
+              ["Semester", sel.semester], ["CGPA", sel.cgpa],
+              ["SGPA", sel.sgpa], ["Backlogs", sel.backlogs],
+              ["Section", sel.section || "—"], ["Specialization", sel.specialization || "—"],
+            ].map(([k, v]) => (
+              <div key={k} style={{ background: isDark ? theme.SRF : theme.BG, borderRadius: 8, padding: "10px 12px", border: `1px solid ${theme.BD}` }}>
+                <div style={{ fontSize: 10, color: theme.TX3, textTransform: "uppercase", letterSpacing: 1, marginBottom: 3, fontFamily: F }}>{k}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: theme.TX1, fontFamily: FM }}>{v}</div>
               </div>
             ))}
           </div>
           {Object.keys(sel.attendance).length > 0 && (
             <>
-              <div style={{ fontSize: 13, fontWeight: 700, color: TX1, marginBottom: 10 }}>Subject Attendance</div>
-              {Object.entries(sel.attendance).map(([sub, val]) => <AttBar key={sub} subject={sub} value={val} />)}
+              <div style={{ fontSize: 13, fontWeight: 700, color: theme.TX1, marginBottom: 10, fontFamily: F }}>
+                Subject Attendance
+              </div>
+              {Object.entries(sel.attendance).map(([sub, val]) => (
+                <AttBar key={sub} subject={sub} value={val} />
+              ))}
             </>
           )}
         </Modal>

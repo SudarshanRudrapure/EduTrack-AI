@@ -1,6 +1,6 @@
 import { useState } from "react";
-// eslint-disable-next-line no-unused-vars
-import { CRD, BD, BD2, BG, GRN, AMB, RED, TX1, TX2, TX3, F, FM } from "../../constants/theme";
+import { GRN, AMB, RED, F, FM } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { BRANCHES, BCOL } from "../../constants/branches";
 import { avgAtt } from "../../utils/helpers";
 import PageHeader from "../../components/layout/PageHeader";
@@ -15,22 +15,28 @@ import SearchBar from "../../components/ui/SearchBar";
 
 // eslint-disable-next-line no-unused-vars
 export default function AdminStudents({ students, teachers, setStudents }) {
-  const [search, setSearch]           = useState("");
+  const { theme, isDark } = useTheme();
+
+  const [search,       setSearch]       = useState("");
   const [branchFilter, setBranchFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [modal, setModal]             = useState(null);
-  const [editData, setEditData]       = useState({});
+  const [modal,        setModal]        = useState(null);
+  const [editData,     setEditData]     = useState({});
 
   const filtered = students.filter(s => {
     const q = search.toLowerCase();
-    return (!q || s.name.toLowerCase().includes(q) || s.usn.toLowerCase().includes(q) || s.email.toLowerCase().includes(q))
+    return (
+      (!q || s.name.toLowerCase().includes(q) || s.usn.toLowerCase().includes(q) || s.email.toLowerCase().includes(q))
       && (branchFilter === "All" || s.branch === branchFilter)
-      && (statusFilter === "All" || s.status === statusFilter);
+      && (statusFilter === "All" || s.status === statusFilter)
+    );
   });
 
   const openEdit = s => { setEditData({ ...s }); setModal("edit"); };
-  const openAdd  = () => { setEditData({ name: "", email: "", usn: "", branch: "CSE", status: "pending", semester: 1, cgpa: 0, backlogs: 0, phone: "", password: "student123", attendance: {}, sgpaHist: [], notifications: [], university: "VTU", college: "RVCE", specialization: "", section: "", year: 1, sgpa: 0, teacherId: 1 }); setModal("add"); };
-
+  const openAdd  = () => {
+    setEditData({ name: "", email: "", usn: "", branch: "CSE", status: "pending", semester: 1, cgpa: 0, backlogs: 0, phone: "", password: "student123", attendance: {}, sgpaHist: [], notifications: [], university: "VTU", college: "SCE", specialization: "", section: "", year: 1, sgpa: 0, teacherId: 1 });
+    setModal("add");
+  };
   const save   = () => { modal === "edit" ? setStudents(p => p.map(s => s.id === editData.id ? editData : s)) : setStudents(p => [...p, { ...editData, id: Date.now() }]); setModal(null); };
   const remove = id => { if (confirm("Delete this student?")) setStudents(p => p.filter(s => s.id !== id)); };
 
@@ -38,38 +44,62 @@ export default function AdminStudents({ students, teachers, setStudents }) {
 
   return (
     <>
-      <PageHeader title="Student Management" sub={`${students.length} total students across all branches`} actions={[<Btn key="add" onClick={openAdd}>+ Add Student</Btn>]} />
+      <PageHeader
+        title="Student Management"
+        sub={`${students.length} total students across all branches`}
+        actions={[<Btn key="add" onClick={openAdd}>+ Add Student</Btn>]}
+      />
+
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <SearchBar value={search} onChange={setSearch} placeholder="Search name, USN, email..." />
         <Select value={branchFilter} onChange={setBranchFilter} options={["All", ...BRANCHES]} />
         <Select value={statusFilter} onChange={setStatusFilter} options={["All", "approved", "pending", "rejected"]} />
       </div>
 
-      <div style={{ background: CRD, border: `1px solid ${BD}`, borderRadius: 12, overflow: "hidden" }}>
+      <div style={{
+        background: theme.CRD,
+        border: `1px solid ${theme.BD}`,
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+      }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: `1px solid ${BD2}` }}>
-                {cols.map(c => <th key={c} style={{ padding: "12px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: TX3, letterSpacing: 0.8, textTransform: "uppercase" }}>{c}</th>)}
+              <tr style={{ background: isDark ? theme.CRD2 : theme.BG, borderBottom: `2px solid ${theme.BD}` }}>
+                {cols.map(c => (
+                  <th key={c} style={{ padding: "12px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: theme.TX3, letterSpacing: 0.8, textTransform: "uppercase" }}>
+                    {c}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((s, i) => (
-                <tr key={s.id} style={{ borderBottom: `1px solid ${BD}`, background: i % 2 === 0 ? "transparent" : BG + "44" }}>
+                <tr key={s.id} style={{
+                  borderBottom: `1px solid ${theme.BD}`,
+                  background: i % 2 === 0 ? "transparent" : isDark ? theme.SRF + "55" : theme.BG + "88",
+                }}>
                   <td style={{ padding: "12px 14px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <Avatar name={s.name} size={30} />
+                      <Avatar name={s.name} size={32} />
                       <div>
-                        <div style={{ fontSize: 13, color: TX1, fontWeight: 500 }}>{s.name}</div>
-                        <div style={{ fontSize: 11, color: TX3 }}>{s.email}</div>
+                        <div style={{ fontSize: 13, color: theme.TX1, fontWeight: 600, fontFamily: F }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: theme.TX3, fontFamily: F }}>{s.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: "12px 14px", fontFamily: FM, fontSize: 12, color: TX2 }}>{s.usn || "—"}</td>
-                  <td style={{ padding: "12px 14px" }}><Badge color={BCOL[s.branch]} bg={BCOL[s.branch] + "18"}>{s.branch}</Badge></td>
-                  <td style={{ padding: "12px 14px", fontFamily: FM, color: TX2, fontSize: 13 }}>{s.semester}</td>
-                  <td style={{ padding: "12px 14px", fontFamily: FM, color: s.cgpa >= 8 ? GRN : s.cgpa >= 6 ? AMB : RED, fontWeight: 700 }}>{s.cgpa || "—"}</td>
-                  <td style={{ padding: "12px 14px", fontFamily: FM, color: avgAtt(s) >= 75 ? GRN : RED }}>{avgAtt(s) ? `${avgAtt(s)}%` : "—"}</td>
+                  <td style={{ padding: "12px 14px", fontFamily: FM, fontSize: 12, color: theme.TX2 }}>{s.usn || "—"}</td>
+                  <td style={{ padding: "12px 14px" }}>
+                    <Badge color={BCOL[s.branch]} bg={BCOL[s.branch] + "18"}>{s.branch}</Badge>
+                  </td>
+                  <td style={{ padding: "12px 14px", fontFamily: FM, color: theme.TX2, fontSize: 13 }}>{s.semester}</td>
+                  <td style={{ padding: "12px 14px", fontFamily: FM, color: s.cgpa >= 8 ? GRN : s.cgpa >= 6 ? AMB : RED, fontWeight: 700 }}>
+                    {s.cgpa || "—"}
+                  </td>
+                  <td style={{ padding: "12px 14px", fontFamily: FM, color: avgAtt(s) >= 75 ? GRN : RED, fontWeight: 600 }}>
+                    {avgAtt(s) ? `${avgAtt(s)}%` : "—"}
+                  </td>
                   <td style={{ padding: "12px 14px" }}><StatusBadge status={s.status} /></td>
                   <td style={{ padding: "12px 14px" }}>
                     <div style={{ display: "flex", gap: 6 }}>
@@ -81,7 +111,11 @@ export default function AdminStudents({ students, teachers, setStudents }) {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <div style={{ padding: 30, textAlign: "center", color: TX2 }}>No students match your filters.</div>}
+          {filtered.length === 0 && (
+            <div style={{ padding: 40, textAlign: "center", color: theme.TX2, fontFamily: F, fontSize: 14 }}>
+              No students match your filters.
+            </div>
+          )}
         </div>
       </div>
 

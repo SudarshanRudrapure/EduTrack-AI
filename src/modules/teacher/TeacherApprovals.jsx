@@ -1,6 +1,7 @@
 import { useState } from "react";
 // eslint-disable-next-line no-unused-vars
-import { CRD, BD, AMB, RED, GRN, TX1, TX2, F } from "../../constants/theme";
+import { AMB, RED, GRN, F } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { BCOL } from "../../constants/branches";
 import PageHeader from "../../components/layout/PageHeader";
 import Btn from "../../components/ui/Btn";
@@ -10,40 +11,58 @@ import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
 
 export default function TeacherApprovals({ students, setStudents }) {
+  const { theme, isDark } = useTheme();
   const pending = students.filter(s => s.status === "pending");
-  const [sel, setSel]         = useState(null);
+  const [sel,      setSel]      = useState(null);
   const [editData, setEditData] = useState({});
 
   const approve = id => setStudents(p => p.map(s => s.id === id
     ? { ...s, status: "approved", notifications: [...(s.notifications || []), { id: Date.now(), msg: "Profile approved by teacher! Dashboard is now active.", type: "success", read: false, date: "Today" }] }
     : s));
-  const reject  = id => setStudents(p => p.map(s => s.id === id ? { ...s, status: "rejected" } : s));
+  const reject   = id => setStudents(p => p.map(s => s.id === id ? { ...s, status: "rejected" } : s));
   const saveEdit = () => { setStudents(p => p.map(s => s.id === editData.id ? { ...editData, status: "approved" } : s)); setSel(null); };
 
   return (
     <>
       <PageHeader title="Pending Approvals" sub={`${pending.length} student profiles awaiting your review`} />
+
       {pending.length === 0 ? (
-        <div style={{ background: CRD, border: `1px solid ${BD}`, borderRadius: 12, padding: 40, textAlign: "center", color: TX2 }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: TX1, fontFamily: F }}>All caught up!</div>
-          <div style={{ fontSize: 13, fontFamily: F }}>No pending approvals at this time.</div>
+        <div style={{
+          background: theme.CRD,
+          border: `1px solid ${theme.BD}`,
+          borderRadius: 12,
+          padding: 48,
+          textAlign: "center",
+          boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+        }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: theme.TX1, fontFamily: F }}>All caught up!</div>
+          <div style={{ fontSize: 13, color: theme.TX2, fontFamily: F, marginTop: 4 }}>No pending approvals at this time.</div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {pending.map(s => (
-            <div key={s.id} style={{ background: CRD, border: `1px solid ${AMB}33`, borderRadius: 12, padding: 20, borderLeft: `3px solid ${AMB}` }}>
+            <div key={s.id} style={{
+              background: theme.CRD,
+              border: `1px solid ${isDark ? AMB + "33" : AMB + "55"}`,
+              borderRadius: 12,
+              padding: 20,
+              borderLeft: `3px solid ${AMB}`,
+              boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+            }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
                 <Avatar name={s.name} size={44} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: TX1, marginBottom: 2, fontFamily: F }}>{s.name}</div>
-                  <div style={{ fontSize: 12, color: TX2, marginBottom: 10, fontFamily: F }}>{s.email} · {s.phone} · {s.university}</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: theme.TX1, marginBottom: 2, fontFamily: F }}>{s.name}</div>
+                  <div style={{ fontSize: 12, color: theme.TX2, marginBottom: 10, fontFamily: F }}>
+                    {s.email} · {s.phone} · {s.university}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
                     <Badge color={BCOL[s.branch]} bg={BCOL[s.branch] + "18"}>{s.branch}</Badge>
-                    <Badge color={TX2} bg={BD}>Sem {s.semester}</Badge>
-                    <Badge color={TX2} bg={BD}>{s.specialization || "No specialization"}</Badge>
-                    <Badge color={TX2} bg={BD}>CGPA: {s.cgpa}</Badge>
-                    {s.backlogs > 0 && <Badge color={RED} bg="#450a0a">{s.backlogs} backlog(s)</Badge>}
+                    <Badge color={theme.TX2} bg={theme.BD}>Sem {s.semester}</Badge>
+                    <Badge color={theme.TX2} bg={theme.BD}>{s.specialization || "No specialization"}</Badge>
+                    <Badge color={theme.TX2} bg={theme.BD}>CGPA: {s.cgpa}</Badge>
+                    {s.backlogs > 0 && <Badge color={RED} bg={isDark ? "#450a0a" : "#fee2e2"}>{s.backlogs} backlog(s)</Badge>}
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <Btn v="success" onClick={() => approve(s.id)}>✓ Approve</Btn>
@@ -70,7 +89,7 @@ export default function TeacherApprovals({ students, setStudents }) {
           </div>
           <Input label="Backlogs" value={editData.backlogs} onChange={v => setEditData(p => ({ ...p, backlogs: +v }))} type="number" />
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <Btn v="ghost" onClick={() => setSel(null)}>Cancel</Btn>
+            <Btn v="ghost"   onClick={() => setSel(null)}>Cancel</Btn>
             <Btn v="success" onClick={saveEdit}>✓ Save & Approve</Btn>
           </div>
         </Modal>

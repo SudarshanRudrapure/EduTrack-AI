@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CRD, BD, BLU, TX1, TX2, F } from "../../constants/theme";
+import { BLU, F } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { BRANCHES } from "../../constants/branches";
 import PageHeader from "../../components/layout/PageHeader";
 import Btn from "../../components/ui/Btn";
@@ -10,36 +11,65 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 
 export default function AdminTeachers({ teachers, setTeachers, students }) {
-  const [modal, setModal]       = useState(null);
+  const { theme, isDark } = useTheme();
+  const [modal,    setModal]    = useState(null);
   const [editData, setEditData] = useState({});
 
   const openAdd = () => setEditData({ name: "", email: "", password: "teacher123", department: "CSE", phone: "", subjects: [] });
-  const save    = () => { modal === "edit" ? setTeachers(p => p.map(t => t.id === editData.id ? editData : t)) : setTeachers(p => [...p, { ...editData, id: Date.now() }]); setModal(null); };
+  const save    = () => {
+    modal === "edit"
+      ? setTeachers(p => p.map(t => t.id === editData.id ? editData : t))
+      : setTeachers(p => [...p, { ...editData, id: Date.now() }]);
+    setModal(null);
+  };
 
   return (
     <>
-      <PageHeader title="Teacher Management" sub={`${teachers.length} faculty members`}
-        actions={[<Btn key="add" onClick={() => { openAdd(); setModal("add"); }}>+ Add Teacher</Btn>]} />
+      <PageHeader
+        title="Teacher Management"
+        sub={`${teachers.length} faculty members`}
+        actions={[<Btn key="add" onClick={() => { openAdd(); setModal("add"); }}>+ Add Teacher</Btn>]}
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
         {teachers.map(t => {
           const myStudents = students.filter(s => s.teacherId === t.id);
           return (
-            <div key={t.id} style={{ background: CRD, border: `1px solid ${BD}`, borderRadius: 12, padding: 20 }}>
+            <div key={t.id} style={{
+              background: theme.CRD,
+              border: `1px solid ${theme.BD}`,
+              borderRadius: 12,
+              padding: 20,
+              boxShadow: isDark ? "none" : "0 1px 4px rgba(0,0,0,0.06)",
+            }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                 <Avatar name={t.name} size={44} />
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: TX1, fontFamily: F }}>{t.name}</div>
-                  <div style={{ fontSize: 12, color: TX2, fontFamily: F }}>{t.department} Dept.</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: theme.TX1, fontFamily: F }}>{t.name}</div>
+                  <div style={{ fontSize: 12, color: theme.TX2, fontFamily: F }}>{t.department} Dept.</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: TX2, marginBottom: 6 }}>📧 {t.email}</div>
-              <div style={{ fontSize: 12, color: TX2, marginBottom: 12 }}>📱 {t.phone}</div>
-              <div style={{ marginBottom: 12, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                {t.subjects.slice(0, 4).map(s => <Badge key={s} color={BLU} bg={BLU + "15"}>{s}</Badge>)}
+
+              <div style={{ fontSize: 12, color: theme.TX2, marginBottom: 6, fontFamily: F }}>📧 {t.email}</div>
+              <div style={{ fontSize: 12, color: theme.TX2, marginBottom: 12, fontFamily: F }}>📱 {t.phone}</div>
+
+              <div style={{ marginBottom: 14, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {t.subjects.slice(0, 4).map(s => (
+                  <Badge key={s} color={BLU} bg={isDark ? BLU + "18" : BLU + "12"}>{s}</Badge>
+                ))}
               </div>
-              <div style={{ display: "flex", gap: 6, justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 11, color: TX2 }}>{myStudents.length} students assigned</span>
+
+              <div style={{
+                paddingTop: 12,
+                borderTop: `1px solid ${theme.BD}`,
+                display: "flex",
+                gap: 6,
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <span style={{ fontSize: 11, color: theme.TX3, fontFamily: F }}>
+                  {myStudents.length} students assigned
+                </span>
                 <div style={{ display: "flex", gap: 6 }}>
                   <Btn v="ghost" sz="sm" onClick={() => { setEditData({ ...t }); setModal("edit"); }}>Edit</Btn>
                   <Btn v="danger" sz="sm" onClick={() => { if (confirm("Remove teacher?")) setTeachers(p => p.filter(x => x.id !== t.id)); }}>Del</Btn>
