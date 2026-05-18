@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { INIT_STUDENTS, INIT_TEACHERS, INIT_ASSIGNMENTS } from "./constants/data";
+import { getStudents, getTeachers, getAssignments } from "./services/spService";
 import LoginPage   from "./modules/auth/LoginPage";
 import AdminApp    from "./modules/admin/AdminApp";
 import TeacherApp  from "./modules/teacher/TeacherApp";
@@ -9,25 +10,37 @@ import ChatPanel   from "./components/chat/ChatPanel";
 import { useTheme } from "./context/ThemeContext";
 import { BLU, F } from "./constants/theme";
 
-const load = (key, fallback) => {
-  try {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : fallback;
-  } catch { return fallback; }
-};
-
 export default function App() {
   const { theme, isDark } = useTheme();
 
-  const [students,    setStudentsRaw]    = useState(() => load("ams_students",    INIT_STUDENTS));
-  const [teachers,    setTeachersRaw]    = useState(() => load("ams_teachers",    INIT_TEACHERS));
-  const [assignments, setAssignmentsRaw] = useState(() => load("ams_assignments", INIT_ASSIGNMENTS));
+  const [students,    setStudentsRaw]    = useState(INIT_STUDENTS);
+  const [teachers,    setTeachersRaw]    = useState(INIT_TEACHERS);
+  const [assignments, setAssignmentsRaw] = useState(INIT_ASSIGNMENTS);
   const [user,        setUser]           = useState(null);
   const [chatOpen,    setChatOpen]       = useState(false);
+  const [spLoaded,    setSpLoaded]       = useState(false);
 
-  useEffect(() => { localStorage.setItem("ams_students",    JSON.stringify(students));    }, [students]);
-  useEffect(() => { localStorage.setItem("ams_teachers",    JSON.stringify(teachers));    }, [teachers]);
-  useEffect(() => { localStorage.setItem("ams_assignments", JSON.stringify(assignments)); }, [assignments]);
+  // ── Load data from SharePoint on app start ──────────────────────
+  useEffect(() => {
+    const loadFromSP = async () => {
+      try {
+        const [spStudents, spTeachers, spAssignments] = await Promise.all([
+          getStudents(),
+          getTeachers(),
+          getAssignments(),
+        ]);
+        if (spStudents.length    > 0) setStudentsRaw(spStudents);
+        if (spTeachers.length    > 0) setTeachersRaw(spTeachers);
+        if (spAssignments.length > 0) setAssignmentsRaw(spAssignments);
+        setSpLoaded(true);
+        console.log("✅ Loaded from SharePoint");
+      } catch (err) {
+        console.error("❌ SharePoint load failed, using local data", err);
+        setSpLoaded(true);
+      }
+    };
+    loadFromSP();
+  }, []);
 
   const setStudents    = useCallback((v) => setStudentsRaw(v),    []);
   const setTeachers    = useCallback((v) => setTeachersRaw(v),    []);
@@ -37,14 +50,32 @@ export default function App() {
 
   const resetData = useCallback(() => {
     if (confirm("Reset all data to original? This cannot be undone.")) {
-      localStorage.removeItem("ams_students");
-      localStorage.removeItem("ams_teachers");
-      localStorage.removeItem("ams_assignments");
       setStudentsRaw(INIT_STUDENTS);
       setTeachersRaw(INIT_TEACHERS);
       setAssignmentsRaw(INIT_ASSIGNMENTS);
     }
   }, []);
+
+  // ── Show loading screen while SharePoint loads ──────────────────
+  if (!spLoaded) {
+    return (
+      <div style={{
+        fontFamily: F,
+        background: "#0f172a",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#fff",
+        gap: 16,
+      }}>
+        <div style={{ fontSize: 32 }}>⏳</div>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>Loading EduTrack AI...</div>
+        <div style={{ fontSize: 13, color: "#94a3b8" }}>Connecting to SharePoint</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: F, background: theme.BG, minHeight: "100vh", color: theme.TX1 }}>

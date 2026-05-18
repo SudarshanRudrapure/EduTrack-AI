@@ -7,6 +7,8 @@ import AdminTeachers from "./AdminTeachers";
 import AdminReports from "./AdminReports";
 import AdminSettings from "./AdminSettings";
 import AdminCalendar from "./AdminCalendar";
+// eslint-disable-next-line no-unused-vars
+import AdminSetup from "./AdminSetup";
 
 // eslint-disable-next-line no-unused-vars
 export default function AdminApp({ user, students, teachers, assignments, setStudents, setTeachers, setAssignments, onLogout, resetData }) {
@@ -19,6 +21,7 @@ export default function AdminApp({ user, students, teachers, assignments, setStu
     { id: "reports",   icon: "📈", label: "Reports"   },
     { id: "calendar",  icon: "📅", label: "Calendar"  },
     { id: "settings",  icon: "⚙️", label: "Settings"  },
+    // { id: "spsetup",   icon: "🛠️", label: "SP Setup"  },
   ];
 
   return (
@@ -31,6 +34,7 @@ export default function AdminApp({ user, students, teachers, assignments, setStu
         {view === "reports"  && <AdminReports  students={students} assignments={assignments} />}
         {view === "calendar" && <AdminCalendar />}
         {view === "settings" && <AdminSettings resetData={resetData} />}
+        {/* {view === "spsetup"  && <AdminSetup students={students} teachers={teachers} assignments={assignments} />} */}
       </PageWrap>
     </>
   );
